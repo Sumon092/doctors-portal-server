@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
@@ -19,6 +20,7 @@ async function run() {
         // console.log('database connected');
         const treatmentCollection = client.db('doctors_portal').collection('treatments');
         const bookingCollection = client.db('doctors_portal').collection('bookings');
+        const usersCollection = client.db('doctors_portal').collection('users');
 
         app.get('/treatments', async (req, res) => {
             const query = {};
@@ -26,6 +28,19 @@ async function run() {
             const treatments = await cursor.toArray();
             res.send(treatments);
         });
+
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const user = req.body;
+            const options = { upsert: true }
+            const updateDoc = {
+                $set: user,
+            }
+            const results = await usersCollection.updateOne(filter, updateDoc, options);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send({ results, token })
+        })
 
         // Warning: This is not the proper way to query multiple collection. 
         // After learning more about mongodb. use aggregate, lookup, pipeline, match, group
@@ -60,6 +75,7 @@ async function run() {
      * app.get('/booking') // get all bookings in this collection. or get more than one or by filter
      * app.get('/booking/:id') // get a specific booking 
      * app.post('/booking') // add a new booking
+     * app.post('/booking/:id') upsert=> update (if exist) insert (if not exist)
      * app.patch('/booking/:id) //
      * app.delete('/booking/:id) //
     */
