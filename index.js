@@ -43,11 +43,24 @@ async function run() {
             const treatments = await cursor.toArray();
             res.send(treatments);
         });
+        app.get('/user', verifyJwt, async (req, res) => {
+            const users = await usersCollection.find().toArray();
+            res.send(users);
+        })
 
-        app.put('/user/:email', async (req, res) => {
+        app.put('/user/admin/:email', verifyJwt, async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' },
+            }
+            const results = await usersCollection.updateOne(filter, updateDoc);
+            res.send(results)
+        })
+        app.put('/user/:email', verifyJwt, async (req, res) => {
+            const email = req.params.email;
             const user = req.body;
+            const filter = { email: email };
             const options = { upsert: true }
             const updateDoc = {
                 $set: user,
