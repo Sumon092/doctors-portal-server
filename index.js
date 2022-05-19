@@ -48,9 +48,9 @@ async function run() {
             res.send(users);
         })
 
-        app.get('/admin/:email', verifyJwt, async (req, res) => {
+        app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
-            console.log({ email });
+            // console.log({ email });
             const user = await usersCollection.findOne({ email: email });
             const isAdmin = user.role === 'admin';
             res.send({ admin: isAdmin })
@@ -132,7 +132,7 @@ async function run() {
 
         app.get('/booking', verifyJwt, async (req, res) => {
             const patient = req.query.patient;
-            console.log(patient);
+            // console.log(patient);
             // const authorization = req.headers.authorization;
             const decodedEmail = req.decoded.email;
             if (decodedEmail) {
