@@ -48,7 +48,7 @@ async function run() {
             res.send(users);
         })
 
-        app.get('/admin/:email', async (req, res) => {
+        app.get('/admin/:email', verifyJwt, async (req, res) => {
             const email = req.params.email;
             console.log({ email });
             const user = await usersCollection.findOne({ email: email });
@@ -56,10 +56,10 @@ async function run() {
             res.send({ admin: isAdmin })
         })
 
-        app.put('/user/admin/:email', async (req, res) => {
+        app.put('/user/admin/:email', verifyJwt, async (req, res) => {
             const email = req.params.email;
-            // const requester = req.decoded.email;
-            // const requesterAccount = await usersCollection.findOne({ email: requester });
+            const requester = req.decoded.email;
+            const requesterAccount = await usersCollection.findOne({ email: requester });
             if (requesterAccount.role === 'admin') {
                 const filter = { email: email };
                 const updateDoc = {
@@ -130,20 +130,20 @@ async function run() {
         // })
 
 
-        app.get('/booking', async (req, res) => {
+        app.get('/booking', verifyJwt, async (req, res) => {
             const patient = req.query.patient;
             console.log(patient);
             // const authorization = req.headers.authorization;
-            // const decodedEmail = req.decoded.email;
-            // if (decodedEmail) {
-            const query = { patient: patient }
-            console.log(query);
-            const bookings = await bookingCollection.find(query).toArray();
-            return res.send(bookings);
-            // }
-            // else {
-            //     return res.status(403).send({ message: 'Forbidden Access' });
-            // }
+            const decodedEmail = req.decoded.email;
+            if (decodedEmail) {
+                const query = { patient: patient }
+                console.log(query);
+                const bookings = await bookingCollection.find(query).toArray();
+                return res.send(bookings);
+            }
+            else {
+                return res.status(403).send({ message: 'Forbidden Access' });
+            }
 
         });
 
